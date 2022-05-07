@@ -1,0 +1,126 @@
+================================================
+     _   ___     ___    
+    | | / \ \   / / \   
+ _  | |/ _ \ \ / / _ \  
+| |_| / ___ \ V / ___ \ 
+ \___/_/   \_\_/_/   \_\
+                        
+     _ _____ ___  ____   _    ____  ______   __
+    | | ____/ _ \|  _ \ / \  |  _ \|  _ \ \ / /
+ _  | |  _|| | | | |_) / _ \ | |_) | | | \ V / 
+| |_| | |__| |_| |  __/ ___ \|  _ <| |_| || |  
+ \___/|_____\___/|_| /_/   \_\_| \_\____/ |_|  
+                                               
+================================================
+
+Purpose: To teach you about sockets programming and multithreaded in a postive
+and family-safe manner. You will implement a multiplayer quiz show, both the
+server and the client. 
+
+Partnered: Sure, if you want to partner up on this or something, go for it.
+Just make sure to put the names of all the partners on the top of the file, or
+they won't get credit for it and/or the plagiarism detector will trip on it.
+
+Learning points:
+1) You can read and write to a socket just like you read and write to the
+standard input and standard output. Sample code is provided that shows you how
+to do this from the server side of things and the client side of things. Look
+at Server.java to see how the server code works in terms of accepting a
+connection and spawning off a new thread to handle it.
+
+2) Threads are kind of like separate programs running within the same program,
+except they can share variables in their enclosing class. For example, I have
+an Integer, an AtomicInteger, and a ConcurrentHashMap that all the threads can
+see and read and write to. While it's okay for everyone to be reading from an
+Integer, you really don't want multiple threads writing to it at the same time
+- use an AtomicInteger for cases like that. They're thread-safe. The existing
+ Server code spawns off one thread for each client that connects.
+
+3) A ConcurrentHashMap is a data structure that is a hash table that is thread
+safe. You can use its get and put methods (the key is just the thread's
+thread_id) to retreive and store values in it. The server will periodically
+print out the contents of it to show the current score.
+
+4) Look at Client.Java to see how the client side does things (connecting to a
+server, sending and receiving strings from the server, etc.)
+
+Running the code:
+
+Step 1) Fix the compiler bug I hid in the code. (It's like a treasure hunt, but
+the reward is you get to do the homework!)
+
+Step 2) Make the project.
+
+Step 3) Run the server via "./server.sh 9000" If port 9000 is busy, pick
+another port and use the same number below when you see me type 9000.
+
+Step 4) Open up a new terminal and run the client via "./client.sh 9000".
+Step 5) Open up a new terminal and run the client via "./client.sh 9000".
+Step 6) Open up a new terminal and run the client via "./client.sh 9000".
+
+Step 4) Type in responses on the client side (the server is non-interactive) and
+you will see the server randomly awarding or taking away points from the
+client. There is a thread-safe hashmap used to keep track of scores, and
+another one keeping track of the players in the game. Look at how that works.
+
+So after you've run this and looked over the code, you should realize you have
+a pretty good foundation for making a quiz show game. All the networking stuff
+is there, there's a shared thread-safe scoreboard, etc. You just need to
+actually make the game!
+
+You and your partners will be graded based on the following five points. One
+full letter grade is awarded for each bullet point you do, and **make sure you
+put at the top of the Server.java file which ones you did**.
+
+Point Yi) Have the server automatically begin the game when three (exactly three) clients
+connect. Before the game begins, the only thing that should happen is that the
+clients should enter their name for the scoreboard.
+
+Point Er) Once three people are in, then the game begins and should ask one
+question at a time to the clients. Everyone needs to be on the same question
+at the same time. In other words, don't just move on to the next question when
+the first client responds - ALL of them have to give a response to move on to
+the next question. (Hint: Use a ConcurrentHashMap to track client responses.)
+
+Point San) After each question, send to the clients the current score for
+every player, so people can see how they're doing. They should win points for
+getting questions right and lose points for getting questions wrong. As the
+quiz progresses, the point value of the questions should go up.
+
+Point Yon) You need to have some sort of data structure holding all of the
+quiz questions and responses. Don't just cheap out with a bunch of if
+statements or something. The topic for the quiz can be anything you like, and
+the answers can either be multiple choice or free response or whatever.
+
+Point Cinco) When the game is over, it needs to tell the winner (the person(s)
+with the high score) they won, and to tell everyone else they're a loser. The
+server should then reset itself back to a starting state so another three
+people can connect. Some of the code right now will absolutely not work a
+second time through unless you fix this up.
+
+Extra Credit:
+Lots of extra credit is available. Make sure if you do something worthy of
+extra credit you put it on the top of Server.java so that I see it and give it
+points.
+
+10 ideas for extra credit:
+Uno) Build a GUI for it using AWT or Swing. Then you can play the quiz show at
+home on your PC and connect to the console-based server on the server!
+Dos) Add in lots of different quizes to pick from
+Drei) Add in Double Jeopardy or Final Jeopardy style questions where people
+choose how much they want to wager on their answer
+IV) Have the clients time out if they don't answer in time. This should not
+cost them any points (or win any points)
+Wu) Do it in C++ (using Boost::ASIO) instead of Java. For more extra credit, do it in C.
+For even more, do it in Assembly.
+Roku) Support multiple lobbies and games going at the same time, instead of
+just one game at a time.
+Sept) Support more than 3 clients and also give points based on who answered the
+quiz questions first
+Oct) VR Support
+Jiu) Actually implement Jeopardy with a board, and the winner of a question
+being in control of the board.
+Jyu) Have the backend running on Azure, Amazon EC2, or some similar compute
+infrastructure.
+
+Good luck and have fun!
