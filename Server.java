@@ -38,8 +38,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Scanner; // Import the Scanner class to read text files
 import java.util.Map; // import the Map class
 import java.util.HashMap; // import the HashMap class
-import java.util.Vector; // import the HashMap class
-import java.util.TreeMap; // A sorted map
+//import java.util.Vector; // import the HashMap class
+//import java.util.TreeMap; // A sorted map
 import java.util.LinkedHashMap; // A sorted map
 
 public class Server {
@@ -144,20 +144,20 @@ public class Server {
 		}
 
 		//Importing the question list
-		Map<String, Map<String, Boolean>> questions = new LinkedHashMap<String, Map<String, Boolean>>(); //Data set that holds pairs of pairs
+		LinkedHashMap<String, LinkedHashMap<String, Boolean>> questions = new LinkedHashMap<String, LinkedHashMap<String, Boolean>>(); //Data set that holds pairs of pairs
 		try {
 			File myObj = new File("questions.txt"); //This file holds all ouf our questions, answers, and solutions
 			Scanner cin = new Scanner(myObj); //I want to go back to C++
 			while (cin.hasNextLine()) {
 				String question = cin.nextLine();
 				if (question.equals("_")) { continue; } //If we reach a delimiter, look for another question
-				Map<String, Boolean> answers = new HashMap <String, Boolean>();
+				LinkedHashMap<String, Boolean> answers = new LinkedHashMap <String, Boolean>();
 				while (cin.hasNextLine()) {
 					String answer = cin.nextLine();
 					if (answer.equals("_")) { break; }  //If we reach a delimiter, look for another question
 					String b = cin.nextLine();
-					if (b.equals("0")) { answers.put (answer, false); }
-					else if (b.equals("1")) { answers.put (answer, true); }
+					if (b.equals("0")) { answers.put(answer, false); }
+					else if (b.equals("1")) { answers.put(answer, true); }
 					else continue;
 				}
 				questions.put(question, answers);
@@ -185,7 +185,7 @@ public class Server {
 		//YOU: Uncomment this line to get the code to work
 		boolean listening = true; //FIXME Kerney bug?
 
-		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
+		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { //FIXME KERNEY BUG
 			while (listening) {
 				ServerThread new_thread = new ServerThread(serverSocket.accept(),thread_count); 
 				new_thread.start();
