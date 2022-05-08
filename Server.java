@@ -1,10 +1,46 @@
 //You: Put your and your parter's names here
 //You: Describe which bullet points you implemented
 //You: If you did anything worthy of extra credit, put them here
+
+//Point Yi) Have the server automatically begin the game when three (exactly three) clients
+//connect. Before the game begins, the only thing that should happen is that the
+//clients should enter their name for the scoreboard.
+
+//Point Er) Once three people are in, then the game begins and should ask one
+//question at a time to the clients. Everyone needs to be on the same question
+//at the same time. In other words, don't just move on to the next question when
+//the first client responds - ALL of them have to give a response to move on to
+//the next question. (Hint: Use a ConcurrentHashMap to track client responses.)
+
+//Point San) After each question, send to the clients the current score for
+//every player, so people can see how they're doing. They should win points for
+//getting questions right and lose points for getting questions wrong. As the
+//quiz progresses, the point value of the questions should go up.
+
+//Point Yon) You need to have some sort of data structure holding all of the
+//quiz questions and responses. Don't just cheap out with a bunch of if
+//statements or something. The topic for the quiz can be anything you like, and
+//the answers can either be multiple choice or free response or whatever.
+//TODO Tim
+//So far, we are reading in from a file that contains the questions, answers, and answer key
+//They can have any number of questions, T/F, multiple choice etc
+//Located in "questions.txt" and delimited by "_"
+
+//Point Cinco) When the game is over, it needs to tell the winner (the person(s)
+//with the high score) they won, and to tell everyone else they're a loser. The
+//server should then reset itself back to a starting state so another three
+//people can connect. Some of the code right now will absolutely not work a
+//second time through unless you fix this up.
 import java.net.*;
 import java.io.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Scanner; // Import the Scanner class to read text files
+import java.util.Map; // import the Map class
+import java.util.HashMap; // import the HashMap class
+import java.util.Vector; // import the HashMap class
+import java.util.TreeMap; // A sorted map
+import java.util.LinkedHashMap; // A sorted map
 
 public class Server {
 	//Note: Static variables are tied to a class, not to objects of that class.
@@ -17,7 +53,7 @@ public class Server {
 	//Using an AtomicInteger must be used if multiple threads are going to read and write to a shared variable
 	//This just tracks how many lines total have been read from the clients
 	static AtomicInteger chat_count = new AtomicInteger(); 
-	
+
 	//Note: A ConcurrentHashMap is a thread-safe hash table you can share between threads
 	// You can use .get() to get data from it and .put() to put data into it
 	// If you do a get() and there's nothing there, it will throw an exception
@@ -44,7 +80,7 @@ public class Server {
 			try (
 					PrintWriter socket_out = new PrintWriter(socket.getOutputStream(), true);
 					BufferedReader socket_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				) {
+			    ) {
 				String inputLine, outputLine;
 				inputLine = socket_in.readLine(); //Get their name from the network connection
 				outputLine = "Welcome " + inputLine;
@@ -101,15 +137,53 @@ public class Server {
 	}
 
 	public static void main(String[] args) throws IOException {
-
+		//Usage vetting
 		if (args.length != 1) {
 			System.err.println("Usage: java Server <port number>");
 			System.exit(1);
 		}
 
+		//Importing the question list
+		Map<String, Map<String, Boolean>> questions = new LinkedHashMap<String, Map<String, Boolean>>(); //Data set that holds pairs of pairs
+		try {
+			File myObj = new File("questions.txt"); //This file holds all ouf our questions, answers, and solutions
+			Scanner cin = new Scanner(myObj); //I want to go back to C++
+			while (cin.hasNextLine()) {
+				String question = cin.nextLine();
+				if (question.equals("_")) { continue; } //If we reach a delimiter, look for another question
+				Map<String, Boolean> answers = new HashMap <String, Boolean>();
+				while (cin.hasNextLine()) {
+					String answer = cin.nextLine();
+					if (answer.equals("_")) { break; }  //If we reach a delimiter, look for another question
+					String b = cin.nextLine();
+					if (b.equals("0")) { answers.put (answer, false); }
+					else if (b.equals("1")) { answers.put (answer, true); }
+					else continue;
+				}
+				questions.put(question, answers);
+			}
+			cin.close();
+		} 
+		catch (FileNotFoundException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+
+		//Iterate over our questions list
+		//TODO: Leaving this in to prove my worth that my data structure works. Will remove later
+		for (String s : questions.keySet()) {
+			int i = 1;
+			System.out.println(s);
+			for (String r : questions.get(s).keySet()) {
+				System.out.print("[" + i + "] ");
+				i = i + 1;
+				System.out.println(r);
+			}
+		}
+
 		int portNumber = Integer.parseInt(args[0]);
 		//YOU: Uncomment this line to get the code to work
-		//boolean listening = true;
+		boolean listening = true; //FIXME Kerney bug?
 
 		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
 			while (listening) {
@@ -118,7 +192,8 @@ public class Server {
 				System.out.println("Client " + Integer.toString(thread_count) + " connected");
 				thread_count++;
 			}
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			System.err.println("Could not listen on port " + portNumber);
 			System.exit(-1);
 		}
