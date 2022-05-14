@@ -65,7 +65,7 @@ public class Server {
 	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
 
 	//YOU: You may need to make another ConcurrentHashMap to track, for example, what question each thread is on
-
+	static ConcurrentHashMap<Integer,String> question = new ConcurentHashMap<Integer, String>(); 														//Line Added, FIXME JIC why: question.at(1) == 'The question'
 	//YOU: You need to add all the logic for doing a quiz, including maybe another static nested class or something
 	// You might also might want to make a class so as to consolidate the ConcurrentHashMaps into one
 
@@ -84,7 +84,7 @@ public class Server {
 			try (
 					PrintWriter socket_out = new PrintWriter(socket.getOutputStream(), true);
 					BufferedReader socket_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			    ) {
+				) {
 				String inputLine, outputLine;
 				inputLine = socket_in.readLine(); //Get their name from the network connection
 				outputLine = "Welcome " + inputLine;
@@ -140,6 +140,7 @@ public class Server {
 					}
 
 					//YOU: Wait for the other clients to answer before moving on to the next question
+
 
 				}
 				System.out.println("Thread closing");
