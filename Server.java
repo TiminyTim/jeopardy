@@ -65,7 +65,7 @@ public class Server {
 	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
 
 	//YOU: You may need to make another ConcurrentHashMap to track, for example, what question each thread is on
-	static ConcurrentHashMap<Integer,String> question = new ConcurentHashMap<Integer, String>(); 														//Line Added, FIXME JIC why: question.at(1) == 'The question'
+	static ConcurrentHashMap<Integer,String> question = new ConcurrentHashMap<Integer, String>(); //Line Added, FIXME JIC why: question.at(1) == 'The question'
 	//YOU: You need to add all the logic for doing a quiz, including maybe another static nested class or something
 	// You might also might want to make a class so as to consolidate the ConcurrentHashMaps into one
 
@@ -158,7 +158,6 @@ public class Server {
 			System.exit(1);
 		}
 
-		//Importing the question list
 		LinkedHashMap<String, LinkedHashMap<String, Boolean>> questions = new LinkedHashMap<String, LinkedHashMap<String, Boolean>>(); //Data set that holds pairs of pairs
 		try {
 			File myObj = new File("questions.txt"); //This file holds all ouf our questions, answers, and solutions
