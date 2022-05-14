@@ -21,20 +21,22 @@ public class Client {
 			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 			String fromServer;
 			String fromUser;
+			String userName;
 			System.out.println("Please enter your name:");
 			fromUser = stdIn.readLine();
+			userName = fromUser;
 			socket_out.println(fromUser); //Transmit name over the interwebs
 
 			//Read line from the server
 			while ((fromServer = socket_in.readLine()) != null) {
 				System.out.println("Server: " + fromServer);
-				if (fromServer.equals("QUIT"))
-					break;
+				if (fromServer.equals("QUIT")) break;
 
 				//Read line from the keyboard
+				System.out.println("Client awaiting input");
 				fromUser = stdIn.readLine();
 				if (fromUser != null) {
-					System.out.println("Client: " + fromUser);
+					System.out.println("Client " + userName + ": " + fromUser);
 					socket_out.println(fromUser);
 				}
 			}

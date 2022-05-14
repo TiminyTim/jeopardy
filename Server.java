@@ -11,6 +11,7 @@
 //at the same time. In other words, don't just move on to the next question when
 //the first client responds - ALL of them have to give a response to move on to
 //the next question. (Hint: Use a ConcurrentHashMap to track client responses.)
+//hack 
 
 //Point San) After each question, send to the clients the current score for
 //every player, so people can see how they're doing. They should win points for
@@ -21,7 +22,7 @@
 //quiz questions and responses. Don't just cheap out with a bunch of if
 //statements or something. The topic for the quiz can be anything you like, and
 //the answers can either be multiple choice or free response or whatever.
-//TODO Tim
+//TODO Change the way our questions and answers are streamed into our data structure
 //So far, we are reading in from a file that contains the questions, answers, and answer key
 //They can have any number of questions, T/F, multiple choice etc
 //Located in "questions.txt" and delimited by "_"
@@ -49,6 +50,9 @@ public class Server {
 	//This variable is only used by main() so we just make a normal Integer
 	static Integer thread_count = 0; //How many clients are connected
 
+	//This is Bad. Basically thread_count but atomic to it works between threads.
+	static AtomicInteger connected_threads = new AtomicInteger(); 
+
 	//Note: Atomics are a safe way to share an int between threads
 	//Using an AtomicInteger must be used if multiple threads are going to read and write to a shared variable
 	//This just tracks how many lines total have been read from the clients
@@ -56,7 +60,7 @@ public class Server {
 
 	//Note: A ConcurrentHashMap is a thread-safe hash table you can share between threads
 	// You can use .get() to get data from it and .put() to put data into it
-	// If you do a get() and there's nothing there, it will throw an exception
+	// If you do a .get() and there's nothing there, it will throw an exception
 	static ConcurrentHashMap<Integer,Integer> scoreboard = new ConcurrentHashMap<Integer,Integer>(); //Holds Scores
 	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
 
@@ -85,6 +89,9 @@ public class Server {
 				inputLine = socket_in.readLine(); //Get their name from the network connection
 				outputLine = "Welcome " + inputLine;
 				socket_out.println(outputLine); //Write a welcome message to the network connection
+				
+				//After they sign in with a username, increment players that are ready to start the game
+				connected_threads.incrementAndGet();
 
 				//Save their name into the ConcurrentHashMap
 				names.put(thread_id,inputLine);
@@ -93,13 +100,20 @@ public class Server {
 				scoreboard.put(thread_id,0);
 
 				//YOU: Remove this demo code and write Jeopardy
+				while (true) {
+					if (connected_threads.get() == 2) {
+						socket_out.println("All players have connected! Welcome to Java Jeopardy!");
+						break;
+					}
+				}
 				while ((inputLine = socket_in.readLine()) != null) {
 					System.out.println("Thread " + thread_id + " read: " + inputLine);
-					if (inputLine.equals("QUIT"))
-						break;
+					if (inputLine.equals("QUIT")) break;
+
 					//Note: If you want to use atomics, it works like this
 					//Does atomic increment, and returns the value into x
 					int x = chat_count.incrementAndGet();
+					//socket_out.println("This is our chat count: " + chat_count);
 
 					//Access our score from the shared scoreboard
 					int score = scoreboard.get(thread_id);
