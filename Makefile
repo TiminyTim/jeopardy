@@ -1,5 +1,5 @@
 COMP = javac
-FLGS =#--module-path
+FLGS = -Xdiags:verbose
 LIBS =
 
 all: Client.class Server.class
