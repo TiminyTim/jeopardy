@@ -23,20 +23,30 @@ public class Client {
 			String fromUser;
 			String userName;
 			System.out.println("Please enter your name:");
+			// the thread will sleep for n milli seconds   
 			fromUser = stdIn.readLine();
-			userName = fromUser;
-			socket_out.println(fromUser); //Transmit name over the interwebs
+			userName = fromUser; //FIXME In case we need to save username?
+			socket_out.println(fromUser); //OUT - Transmit name over the interwebs
+			System.out.println(socket_in.readLine()); //IN - Accept Welcome
+			socket_out.println(); //OUT - tennis
+			//System.out.println(socket_in.readLine()); //IN - Accept start game
+			//try { Thread.sleep(2000); } catch (InterruptedException e) { System.out.println(e); }    
+			//System.out.print("\033[H\033[2J");//WIPE SCREEN
 
-			//Read line from the server
-			while ((fromServer = socket_in.readLine()) != null) {
-				System.out.println("Server: " + fromServer);
+			//System.out.println(socket_in.readLine()); //IN 
+
+			socket_out.println(stdIn.readLine());
+			//socket_out.println("I don't think this will appear");
+			while ((fromServer = socket_in.readLine()) != null) { 
+				System.out.println(socket_in.readLine()); //IN 
+			System.out.println("I'm going bonker");
+				System.out.println("A: " + socket_in.readLine());
 				if (fromServer.equals("QUIT")) break;
 
-				//Read line from the keyboard
-				System.out.println("Client awaiting input");
-				fromUser = stdIn.readLine();
+				fromUser = stdIn.readLine(); //IN - Read line from the keyboard
+				
 				if (fromUser != null) {
-					System.out.println("Client " + userName + ": " + fromUser);
+					System.out.println("Client " + userName + ": " + fromUser); //OUT
 					socket_out.println(fromUser);
 				}
 			}

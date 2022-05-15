@@ -39,8 +39,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Scanner; // Import the Scanner class to read text files
 import java.util.Map; // import the Map class
 import java.util.HashMap; // import the HashMap class
-//import java.util.Vector; // import the HashMap class
-//import java.util.TreeMap; // A sorted map
 import java.util.LinkedHashMap; // A sorted map
 
 public class Server {
@@ -49,20 +47,18 @@ public class Server {
 	// access them equally well. You just have to be careful to be "thread safe".
 	//This variable is only used by main() so we just make a normal Integer
 	static Integer thread_count = 0; //How many clients are connected
-
-	//This is Bad. Basically thread_count but atomic to it works between threads.
 	static AtomicInteger connected_threads = new AtomicInteger(); 
-
-	//Note: Atomics are a safe way to share an int between threads
-	//Using an AtomicInteger must be used if multiple threads are going to read and write to a shared variable
-	//This just tracks how many lines total have been read from the clients
-	static AtomicInteger chat_count = new AtomicInteger(); 
+	public static AtomicInteger chat_count = new AtomicInteger(); 
+	static AtomicInteger r = new AtomicInteger(); //Keep track of our responses per round 
 
 	//Note: A ConcurrentHashMap is a thread-safe hash table you can share between threads
 	// You can use .get() to get data from it and .put() to put data into it
 	// If you do a .get() and there's nothing there, it will throw an exception
-	static ConcurrentHashMap<Integer,Integer> scoreboard = new ConcurrentHashMap<Integer,Integer>(); //Holds Scores
-	static ConcurrentHashMap<Integer,String> names = new ConcurrentHashMap<Integer,String>(); //Client Names
+	static ConcurrentHashMap<Integer,Integer> scoreboard = new ConcurrentHashMap<Integer, Integer>(); //Holds Scores
+	static ConcurrentHashMap<Integer, String> names = new ConcurrentHashMap<Integer, String>(); //Client Names
+	static ConcurrentHashMap<Integer, String> q = new ConcurrentHashMap<Integer, String>();
+	static ConcurrentHashMap<Integer, String> a = new ConcurrentHashMap<Integer, String>();
+
 
 	//YOU: You may need to make another ConcurrentHashMap to track, for example, what question each thread is on
 	static ConcurrentHashMap<Integer,String> question = new ConcurrentHashMap<Integer, String>(); //Line Added, FIXME JIC why: question.at(1) == 'The question'
@@ -84,12 +80,14 @@ public class Server {
 			try (
 					PrintWriter socket_out = new PrintWriter(socket.getOutputStream(), true);
 					BufferedReader socket_in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-				) {
-				String inputLine, outputLine;
-				inputLine = socket_in.readLine(); //Get their name from the network connection
+			    ) {
+				String inputLine;
+				String outputLine;
+				inputLine = socket_in.readLine(); //IN - Get their name from the network connection
 				outputLine = "Welcome " + inputLine;
-				socket_out.println(outputLine); //Write a welcome message to the network connection
-				
+				socket_out.println(outputLine); //OUT - Write a welcome message to the network connection
+				socket_in.readLine();
+
 				//After they sign in with a username, increment players that are ready to start the game
 				connected_threads.incrementAndGet();
 
@@ -97,50 +95,66 @@ public class Server {
 				names.put(thread_id,inputLine);
 
 				//Set our score to 0 in the ConcurrentHashMap to begin with
-				scoreboard.put(thread_id,0);
+				scoreboard.put(thread_id, 0);
 
-				//YOU: Remove this demo code and write Jeopardy
+				//Stop the game until the minimum number of players have connected.
 				while (true) {
 					if (connected_threads.get() == 2) {
-						socket_out.println("All players have connected! Welcome to Java Jeopardy!");
+						//socket_out.println("All players have connected! Welcome to Java Jeopardy! Press ENTER"); 
 						break;
 					}
 				}
-				while ((inputLine = socket_in.readLine()) != null) {
+
+				int f = 0;
+				//socket_in.readLine();
+				//while ((f < 10) && ((inputLine = socket_in.readLine()) != null)) 
+				while (f < q.size()) {
 					System.out.println("Thread " + thread_id + " read: " + inputLine);
 					if (inputLine.equals("QUIT")) break;
-
-					//Note: If you want to use atomics, it works like this
-					//Does atomic increment, and returns the value into x
-					int x = chat_count.incrementAndGet();
-					//socket_out.println("This is our chat count: " + chat_count);
 
 					//Access our score from the shared scoreboard
 					int score = scoreboard.get(thread_id);
 
-					//Sample example of getting a question right
-					//YOU: Replace this with actual quiz show logic that checks to see if they got the answer right
+					String question = q.get(f);
+					String answer   = a.get(f);
+					f = f + 1; // MOVE TODO
+
+					socket_out.println(q.get(f)); //OUT - Send Question
+					inputLine = socket_in.readLine(); //IN - Receive answer
+					System.out.println("Answer: " + inputLine);
+					System.out.println("Actual: " + answer);
+
+					if (inputLine == answer) System.out.println("Answers match!!!!");
+					chat_count.incrementAndGet();
+
+					//Check for all client responses
+					while (true) {
+						if (chat_count.get() == 2) { 
+							System.out.println("YEEHAW, Chat is equal to 2 and will now be reset to 0"); 
+							chat_count.set(0);
+							break;
+						}
+					}
+
 					if (Math.random() < 0.5) { //50/50 chance of getting a question right
-						score += 100;
-						socket_out.println("Correct! Your score is now " + score);
+						//score += 100;
+						socket_out.println("Correct! Your score is now: " + score);
 					}
 					else { //Wrong answer!
-						score -= 100;
-						socket_out.println("Wrong!!!! Score: " + score);
+						//score -= 100;
+						socket_out.println("Wrong! Your score is now: " + score);
 					}
-					//Set our new score
+
 					scoreboard.put(thread_id,score);
 
 					//Note: This prints the current scoreboard, delete it if it gets too spammy
 					System.out.println("====== Scoreboard ======");
 					//Note that this assumes we only have one game, it won't work with a second game, etc.
 					//But it should show you the way, so I am leaving it here
-					for (int i = 0; i < thread_count; i++) {
+					//for (int i = 0; i < thread_count; i++) 
+					for (int i = 0; i < connected_threads.get(); i++) {
 						System.out.println(names.get(i) + ": " + scoreboard.get(i));
 					}
-
-					//YOU: Wait for the other clients to answer before moving on to the next question
-
 
 				}
 				System.out.println("Thread closing");
@@ -151,6 +165,7 @@ public class Server {
 		}
 	}
 
+
 	public static void main(String[] args) throws IOException {
 		//Usage vetting
 		if (args.length != 1) {
@@ -158,23 +173,16 @@ public class Server {
 			System.exit(1);
 		}
 
-		LinkedHashMap<String, LinkedHashMap<String, Boolean>> questions = new LinkedHashMap<String, LinkedHashMap<String, Boolean>>(); //Data set that holds pairs of pairs
-		try {
-			File myObj = new File("questions.txt"); //This file holds all ouf our questions, answers, and solutions
+		try { // Try to load our questions and answers
+			File myObj = new File("peggy.txt"); //Name Peggy because she is the trivia master
 			Scanner cin = new Scanner(myObj); //I want to go back to C++
+			int i = 0;
 			while (cin.hasNextLine()) {
 				String question = cin.nextLine();
-				if (question.equals("_")) { continue; } //If we reach a delimiter, look for another question
-				LinkedHashMap<String, Boolean> answers = new LinkedHashMap <String, Boolean>();
-				while (cin.hasNextLine()) {
-					String answer = cin.nextLine();
-					if (answer.equals("_")) { break; }  //If we reach a delimiter, look for another question
-					String b = cin.nextLine();
-					if (b.equals("0")) { answers.put(answer, false); }
-					else if (b.equals("1")) { answers.put(answer, true); }
-					else continue;
-				}
-				questions.put(question, answers);
+				q.put(i, question);
+				String answer = cin.nextLine();
+				a.put(i, answer);
+				i = i + 1;	
 			}
 			cin.close();
 		} 
@@ -183,24 +191,10 @@ public class Server {
 			e.printStackTrace();
 		}
 
-		//Iterate over our questions list
-		//TODO: Leaving this in to prove my worth that my data structure works. Will remove later
-		for (String s : questions.keySet()) {
-			int i = 1;
-			System.out.println(s);
-			for (String r : questions.get(s).keySet()) {
-				System.out.print("[" + i + "] ");
-				i = i + 1;
-				System.out.println(r);
-			}
-		}
-
 		int portNumber = Integer.parseInt(args[0]);
-		//YOU: Uncomment this line to get the code to work
-		boolean listening = true; //FIXME Kerney bug?
 
-		try (ServerSocket serverSocket = new ServerSocket(portNumber)) { //FIXME KERNEY BUG
-			while (listening) {
+		try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
+			while (true) {
 				ServerThread new_thread = new ServerThread(serverSocket.accept(),thread_count); 
 				new_thread.start();
 				System.out.println("Client " + Integer.toString(thread_count) + " connected");
@@ -213,5 +207,3 @@ public class Server {
 		}
 	}
 }
-//hello this is a test
-//another small comment
