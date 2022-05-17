@@ -204,12 +204,6 @@ public class Server {
 
 				}
 			}
-			System.out.println(q.get(0));
-			System.out.println(q.get(1));
-			System.out.println(q.get(2));
-			System.out.println(q.get(3));
-			System.out.println(q.get(4));
-			System.out.println(q.get(5));
 
 			{ //Spawn thread
 				try (ServerSocket serverSocket = new ServerSocket(portNumber)) {
