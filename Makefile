@@ -1,5 +1,5 @@
 COMP = javac
-FLGS = -Xdiags:verbose
+FLGS = -Xdiags:verbose -Xlint:deprecation #DEBUG
 LIBS =
 
 all: Client.class Server.class
